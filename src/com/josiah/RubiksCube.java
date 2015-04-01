@@ -6,7 +6,7 @@ import java.util.Scanner;
 public class RubiksCube {
 
     private static String protocol = "jdbc:derby:";
-    private static String dbName = "firstDB";
+    private static String dbName = "rubiksCubeDB";
 
     //  Database credentials - for embedded, usually defaults. A client-server DB would need to authenticate connections
     private static final String USER = "username";
@@ -65,17 +65,28 @@ public class RubiksCube {
                 System.out.println("Who/what solved the Rubiks cube?");
                 String one = sc.nextLine();
                 System.out.println("How fast in seconds did they/it solve the Rubiks cube?");
-                Double two = sc.nextDouble();
+                String temp = sc.nextLine();
+                Double two = Double.parseDouble(temp);
+                //asks if there is more data and
+                System.out.println("Would you like to add another?");
+                userAnswer = sc.nextLine();
                 //puts the data into the correct spot and updates the table
                 psInsert.setString(1, one);
                 psInsert.setDouble(2, two);
                 psInsert.executeUpdate();
                 count++;
-                //asks if there is more data and
-                System.out.println("Would you like to add another?");
-                userAnswer = sc.nextLine();
             }
-            System.out.println(count + " rows of data were added to the Cubes table");
+            sc.close();
+            System.out.println(count + " rows of data were added to the Cubes table\n");
+
+            //Fetch all the data and display it.
+            String fetchAllDataSQL = "SELECT * FROM Cubes";
+            rs = statement.executeQuery(fetchAllDataSQL);
+            while (rs.next()) {
+                String solver = rs.getString("rubiksSolver");
+                double time = rs.getDouble("timeTakenInSec");
+                System.out.println("Solved by: " + solver + "\n" + "Solved in: " + time + " seconds \n");
+            }
         } catch (SQLException se) {
             se.printStackTrace();
         } catch(Exception e){
