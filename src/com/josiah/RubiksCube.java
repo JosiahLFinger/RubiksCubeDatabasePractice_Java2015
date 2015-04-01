@@ -1,5 +1,6 @@
 package com.josiah;
 
+import javax.swing.plaf.nimbus.State;
 import java.sql.*;
 import java.util.Scanner;
 
@@ -23,10 +24,10 @@ public class RubiksCube {
             conn = DriverManager.getConnection(protocol + dbName + ";create=true", USER, PASS);
             statement = conn.createStatement();
             try {
-            //create table here
-            String createTableSQL = "CREATE TABLE Cubes (rubiksSolver varchar(100), timeTakenInSec double)";
-            statement.executeUpdate(createTableSQL);
-            System.out.println("Cubes table created");
+                //create table here
+                String createTableSQL = "CREATE TABLE Cubes (rubiksSolver varchar(100), timeTakenInSec double)";
+                statement.executeUpdate(createTableSQL);
+                System.out.println("Cubes table created");
 
 
             } catch (SQLException se) {
@@ -56,11 +57,16 @@ public class RubiksCube {
             psInsert.executeUpdate();
             count++;
 
+//            moreInformation(psInsert, count);
+//            updateTime(statement, conn);
+            System.out.println(count + " rows of data were added to the Cubes table\n");
+
             //Scanner for user input
             Scanner sc = new Scanner(System.in);
             System.out.println("Would you like to add to the table?");
+//            scannerCheck(sc);
             String userAnswer = sc.nextLine();
-            while (!userAnswer.equalsIgnoreCase("no")){
+            while (!userAnswer.equalsIgnoreCase("no")) {
                 //saves each part to it's correct position
                 System.out.println("Who/what solved the Rubiks cube?");
                 String one = sc.nextLine();
@@ -77,7 +83,6 @@ public class RubiksCube {
                 count++;
             }
             sc.close();
-            System.out.println(count + " rows of data were added to the Cubes table\n");
 
             //Fetch all the data and display it.
             String fetchAllDataSQL = "SELECT * FROM Cubes";
@@ -87,9 +92,44 @@ public class RubiksCube {
                 double time = rs.getDouble("timeTakenInSec");
                 System.out.println("Solved by: " + solver + "\n" + "Solved in: " + time + " seconds \n");
             }
+
+            //update time here
+            System.out.println("Would you like to update anyone's time?");
+            String choice = "";
+            if(sc.hasNext()){
+                choice = sc.nextLine();
+            }else {
+            sc.nextLine();
+                
+
+//            scannerCheck(sc);
+
+            while (!choice.equalsIgnoreCase("no")) {
+                //save user input
+                System.out.println("Which solver's time would you like to change?");
+                String solver = sc.nextLine();
+                System.out.println("What is " + solver + "'s new time?");
+                String temp = sc.nextLine();
+                Double newTime = Double.parseDouble(temp);
+                //deletes the time and solver at the correct place
+                String deleteTime = "DELETE * FROM rubiksSolver, timeTakenInSec WHERE rubiksSolver = solver";
+                //inserts new time into correct position
+                prepStatInsert = "INSERT INTO Cubes Values ( ? , ? )";
+                psInsert = conn.prepareStatement(prepStatInsert);
+                psInsert.setString(1, solver);
+                psInsert.setDouble(2, newTime);
+                psInsert.executeUpdate();
+                statement.executeUpdate(deleteTime);
+
+                System.out.println(solver + "'s time was changed to " + newTime + " seconds.");
+
+                System.out.println("Do you have anymore times to change?");
+                choice = sc.nextLine();
+            }
+
         } catch (SQLException se) {
             se.printStackTrace();
-        } catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         } finally {
             //A finally block runs whether an exception is thrown or not. Close resources and tidy up whether this code worked or not.
@@ -98,7 +138,7 @@ public class RubiksCube {
                     statement.close();
                     System.out.println("Statement closed");
                 }
-            } catch (SQLException se){
+            } catch (SQLException se) {
                 //Closing the connection could throw an exception too
                 se.printStackTrace();
             }
@@ -115,3 +155,69 @@ public class RubiksCube {
 
     }
 }
+//
+//    private static void updateTime(Statement statement, Connection conn) throws SQLException {
+//        Scanner sc = new Scanner(System.in);
+//
+//        System.out.println("Would you like to update anyone's time?");
+//        scannerCheck(sc);
+//        String choice = sc.nextLine();
+//        while (!choice.equalsIgnoreCase("no")) {
+//            System.out.println("Which solver's time would you like to change?");
+//            String solver = sc.nextLine();
+//            System.out.println("What is " + solver + "'s new time?");
+//            String temp = sc.nextLine();
+//            Double newTime = Double.parseDouble(temp);
+//            //deletes the time and solver at the correct place
+//            String deleteTime = "DELETE * FROM rubiksSolver, timeTakenInSec WHERE rubiksSolver = solver";
+//            //inserts new time into correct position
+//            String prepStatInsert = "INSERT INTO Cubes Values ( ? , ? )";
+//            PreparedStatement psInsert = conn.prepareStatement(prepStatInsert);
+//            psInsert.setString(1, solver);
+//            psInsert.setDouble(2, newTime);
+//            psInsert.executeUpdate();
+//            statement.executeUpdate(deleteTime);
+//
+//            System.out.println(solver + "'s time was changed to " + newTime + " seconds.");
+//
+//            System.out.println("Do you have anymore times to change?");
+//            choice = sc.nextLine();
+//        }
+//        sc.close();
+//    }
+//
+//    private static void scannerCheck(Scanner sc) {
+//        if (sc.hasNext()) {
+//        } else {
+//            System.out.println("Invalid input. Please try again.");
+//            sc.next(); // -->important
+//            System.out.println();
+//        }
+//    }
+//
+//    private static int moreInformation(PreparedStatement psInsert, int count) throws SQLException {
+//        //Scanner for user input
+//        Scanner sc = new Scanner(System.in);
+//        System.out.println("Would you like to add to the table?");
+//        scannerCheck(sc);
+//        String userAnswer = sc.nextLine();
+//        while (!userAnswer.equalsIgnoreCase("no")){
+//            //saves each part to it's correct position
+//            System.out.println("Who/what solved the Rubiks cube?");
+//            String one = sc.nextLine();
+//            System.out.println("How fast in seconds did they/it solve the Rubiks cube?");
+//            String temp = sc.nextLine();
+//            Double two = Double.parseDouble(temp);
+//            //asks if there is more data and
+//            System.out.println("Would you like to add another?");
+//            userAnswer = sc.nextLine();
+//            //puts the data into the correct spot and updates the table
+//            psInsert.setString(1, one);
+//            psInsert.setDouble(2, two);
+//            psInsert.executeUpdate();
+//            count++;
+//        }
+//        sc.close();
+//        return count++;
+//    }
+//}
